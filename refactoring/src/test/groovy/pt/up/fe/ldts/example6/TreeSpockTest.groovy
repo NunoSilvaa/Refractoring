@@ -1,0 +1,106 @@
+package pt.up.fe.ldts.example6
+
+import spock.lang.Specification
+import java.text.SimpleDateFormat
+
+class TreeSpockTest extends Specification {
+
+
+    def 'Tree Creation'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        expect:
+        tree.plantedAt == date
+        tree.getLocation().getLocationLatitude() == "41.177772696363114"
+        tree.getLocation().getLocationLongitude() == "-8.59843522310257"
+        tree.getLocation().getLocationName() == "FEUP"
+    }
+
+    def 'Tree Set Location'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        given:
+        tree.setLocation(new Location("loclat", "loclon", "locname"))
+
+        expect:
+        tree.plantedAt == date
+        tree.getLocation().getLocationLatitude() == "loclat"
+        tree.getLocation().getLocationLongitude() == "loclon"
+        tree.getLocation().getLocationName() == "locname"
+    }
+
+    def 'Tree to String'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        when:
+        def result = tree.toString()
+
+        then:
+        result == "Tree planted at Sat Aug 31 10:20:56 WEST 2002 in location 41.177772696363114,-8.59843522310257 (FEUP)"
+    }
+
+    def 'Add Appraisal'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        when:
+        sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def appraisalDate = sdf.parse("31-08-2002 10:20:56")
+
+        then:
+        tree.getAppraisals().size() == 0
+
+        and:
+        tree.addAppraisal(appraisalDate)
+
+        then:
+        tree.getAppraisals().size() == 1
+    }
+
+    def 'Next Appraisal Overdue'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        given:
+        def calendar = Calendar.getInstance()
+        calendar.setTime(new Date())
+        calendar.add(Calendar.MONTH, -6)
+
+        when:
+        def appraisalDate = calendar.getTime()
+
+        then:
+        !tree.isNextAppraisalOverdue()
+
+        and:
+        tree.addAppraisal(appraisalDate)
+
+        then:
+        tree.isNextAppraisalOverdue()
+    }
+
+    def 'Next Appraisal Not Overdue'() {
+        def sdf = new SimpleDateFormat("dd-M-yyyy hh:mm:ss")
+        def date = sdf.parse("31-08-2002 10:20:56")
+        def tree = new Tree(date, "41.177772696363114", "-8.59843522310257", "FEUP")
+        given:
+        def calendar = Calendar.getInstance()
+        calendar.setTime(new Date());
+        calendar.add(Calendar.MONTH, -1);
+
+        when:
+        def appraisalDate = calendar.getTime()
+
+        then:
+        !tree.isNextAppraisalOverdue()
+
+        and:
+        tree.addAppraisal(appraisalDate)
+
+        then:
+        !tree.isNextAppraisalOverdue()
+    }
+}
